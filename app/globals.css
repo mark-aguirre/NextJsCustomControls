@@ -140,6 +140,18 @@ body {
   margin-bottom: 0.75rem;
 }
 
+.form-group-horizontal {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-group-horizontal .form-label {
+  margin-bottom: 0;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
 .form-label {
   display: block;
   font-size: 0.75rem;

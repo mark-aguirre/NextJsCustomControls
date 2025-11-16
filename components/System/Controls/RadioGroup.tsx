@@ -4,11 +4,12 @@ interface RadioGroupProps {
   options: string[];
   value: string;
   onChange: (value: string) => void;
+  layout?: 'vertical' | 'horizontal';
 }
 
-export default function RadioGroup({ label, name, options, value, onChange }: RadioGroupProps) {
+export default function RadioGroup({ label, name, options, value, onChange, layout = 'vertical' }: RadioGroupProps) {
   return (
-    <div className="form-group">
+    <div className={`form-group ${layout === 'horizontal' ? 'form-group-horizontal' : ''}`}>
       <label className="form-label">{label}</label>
       <div className="radio-group">
         {options.map((option) => (
