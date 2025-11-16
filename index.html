@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Search Modal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+            'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+            sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Main App Styles */
+        .app-container {
+            min-height: 100vh;
+            background: #f9fafb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .open-modal-btn {
+            padding: 0.5rem 1rem;
+            background: #3b82f6;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .open-modal-btn:hover {
+            background: #2563eb;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
+            margin: 0.5rem;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transform: scale(0.95) translateY(10px);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .modal-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .close-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5rem;
+            height: 1.5rem;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .close-btn svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .modal-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .modal-form {
+            padding: 1rem;
+            flex-shrink: 0;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .radio-input {
+            width: 0.875rem;
+            height: 0.875rem;
+            color: #3b82f6;
+            border-color: #d1d5db;
+        }
+
+        .radio-text {
+            margin-left: 0.375rem;
+            font-size: 0.75rem;
+            color: #374151;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.75rem;
+        }
+
+        .btn svg {
+            width: 0.875rem;
+            height: 0.875rem;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        /* Search Results Table Styles */
+        .search-results {
+            border-top: 1px solid #e5e7eb;
+            padding: 0.75rem 1rem;
+            flex: 1;
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+        }
+
+        .search-results.active {
+            display: flex;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .results-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .result-count {
+            background: #3b82f6;
+            color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            flex: 1;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+
+        .results-table thead {
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .results-table th {
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            white-space: nowrap;
+        }
+
+        .results-table tbody tr {
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s;
+        }
+
+        .results-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .results-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .results-table td {
+            padding: 0.5rem 0.75rem;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+
+        .results-table td:first-child {
+            font-weight: 500;
+            color: #111827;
+        }
+
+        .user-avatar-small {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #3b82f6;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.625rem;
+            margin-right: 0.375rem;
+            vertical-align: middle;
+        }
+
+        .gender-badge {
+            display: inline-block;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-size: 0.625rem;
+            font-weight: 500;
+        }
+
+        .gender-male {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .gender-female {
+            background: #fce7f3;
+            color: #a21caf;
+        }
+
+        .gender-other {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 1rem;
+            color: #6b7280;
+            font-size: 0.75rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 1rem;
+            color: #6b7280;
+            font-size: 0.75rem;
+        }
+
+        .error {
+            padding: 0.5rem 0.75rem;
+            background: #fef2f2;
+            color: #dc2626;
+            font-size: 0.75rem;
+            border-top: 1px solid #fecaca;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .modal-container {
+                margin: 0.25rem;
+                max-width: calc(100vw - 0.5rem);
+                max-height: calc(100vh - 0.5rem);
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .table-container {
+                margin: 0 -0.75rem;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 0.375rem 0.5rem;
+                font-size: 0.6875rem;
+            }
+
+            .radio-group {
+                flex-direction: column;
+                gap: 0.375rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <button class="open-modal-btn" onclick="openModal()">
+        Open User Search Modal
+    </button>
+</div>
+
+<!-- Modal -->
+<div id="modalOverlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 class="modal-title">User Information</h2>
+            <button class="close-btn" onclick="closeModal()" aria-label="Close modal">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="modal-content">
+            <form class="modal-form" onsubmit="handleSearch(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input
+                                type="text"
+                                id="firstName"
+                                name="firstName"
+                                class="form-input"
+                                placeholder="Enter first name"
+                                oninput="updateFormData()"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input
+                                type="text"
+                                id="lastName"
+                                name="lastName"
+                                class="form-input"
+                                placeholder="Enter last name"
+                                oninput="updateFormData()"
+                        />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                        <input
+                                type="date"
+                                id="dateOfBirth"
+                                name="dateOfBirth"
+                                class="form-input"
+                                oninput="updateFormData()"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input
+                                        type="radio"
+                                        name="gender"
+                                        value="male"
+                                        class="radio-input"
+                                        onchange="updateFormData()"
+                                />
+                                <span class="radio-text">Male</span>
+                            </label>
+                            <label class="radio-label">
+                                <input
+                                        type="radio"
+                                        name="gender"
+                                        value="female"
+                                        class="radio-input"
+                                        onchange="updateFormData()"
+                                />
+                                <span class="radio-text">Female</span>
+                            </label>
+                            <label class="radio-label">
+                                <input
+                                        type="radio"
+                                        name="gender"
+                                        value="other"
+                                        class="radio-input"
+                                        onchange="updateFormData()"
+                                />
+                                <span class="radio-text">Other</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        Search
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Clear
+                    </button>
+                </div>
+            </form>
+
+            <div id="searchResults" class="search-results">
+                <div class="results-header">
+                    <h3 class="results-title">Search Results</h3>
+                    <span id="resultCount" class="result-count">0</span>
+                </div>
+
+                <div class="table-container">
+                    <table class="results-table">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>DOB</th>
+                            <th>Gender</th>
+                        </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                        <!-- Table rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="errorMessage" class="error"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // State management
+    let formData = {
+        firstName: '',
+        lastName: '',
+        dateOfBirth: '',
+        gender: ''
+    };
+
+    // Mock user data
+    const mockUsers = [
+        {
+            id: '1',
+            firstName: 'John',
+            lastName: 'Doe',
+            dateOfBirth: '1990-05-15',
+            gender: 'male',
+            email: 'john.doe@example.com',
+            phone: '+1 234-567-8900'
+        },
+        {
+            id: '2',
+            firstName: 'Jane',
+            lastName: 'Smith',
+            dateOfBirth: '1985-08-22',
+            gender: 'female',
+            email: 'jane.smith@example.com',
+            phone: '+1 234-567-8901'
+        },
+        {
+            id: '3',
+            firstName: 'Alex',
+            lastName: 'Johnson',
+            dateOfBirth: '1995-03-10',
+            gender: 'other',
+            email: 'alex.j@example.com',
+            phone: '+1 234-567-8902'
+        },
+        {
+            id: '4',
+            firstName: 'Michael',
+            lastName: 'Brown',
+            dateOfBirth: '1988-12-03',
+            gender: 'male',
+            email: 'michael.b@example.com',
+            phone: '+1 234-567-8903'
+        },
+        {
+            id: '5',
+            firstName: 'Sarah',
+            lastName: 'Wilson',
+            dateOfBirth: '1992-07-18',
+            gender: 'female',
+            email: 'sarah.w@example.com',
+            phone: '+1 234-567-8904'
+        }
+    ];
+
+    // Modal functions
+    function openModal() {
+        const overlay = document.getElementById('modalOverlay');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        const overlay = document.getElementById('modalOverlay');
+        overlay.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        clearResults();
+    }
+
+    function closeModalOnOverlay(event) {
+        if (event.target === event.currentTarget) {
+            closeModal();
+        }
+    }
+
+    // Form functions
+    function updateFormData() {
+        formData.firstName = document.getElementById('firstName').value;
+        formData.lastName = document.getElementById('lastName').value;
+        formData.dateOfBirth = document.getElementById('dateOfBirth').value;
+
+        const genderRadios = document.getElementsByName('gender');
+        for (const radio of genderRadios) {
+            if (radio.checked) {
+                formData.gender = radio.value;
+                break;
+            }
+        }
+    }
+
+    function clearForm() {
+        document.getElementById('firstName').value = '';
+        document.getElementById('lastName').value = '';
+        document.getElementById('dateOfBirth').value = '';
+
+        const genderRadios = document.getElementsByName('gender');
+        for (const radio of genderRadios) {
+            radio.checked = false;
+        }
+
+        formData = {
+            firstName: '',
+            lastName: '',
+            dateOfBirth: '',
+            gender: ''
+        };
+
+        clearResults();
+    }
+
+    function clearResults() {
+        const searchResults = document.getElementById('searchResults');
+        const errorMessage = document.getElementById('errorMessage');
+        searchResults.classList.remove('active');
+        errorMessage.classList.remove('active');
+    }
+
+    // Helper function to get gender badge class
+    function getGenderBadgeClass(gender) {
+        switch(gender) {
+            case 'male':
+                return 'gender-male';
+            case 'female':
+                return 'gender-female';
+            default:
+                return 'gender-other';
+        }
+    }
+
+    // Search function
+    async function handleSearch(event) {
+        event.preventDefault();
+        updateFormData();
+
+        const searchResults = document.getElementById('searchResults');
+        const userTableBody = document.getElementById('userTableBody');
+        const resultCount = document.getElementById('resultCount');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Show loading state
+        userTableBody.innerHTML = '<tr><td colspan="3" class="loading">Searching...</td></tr>';
+        searchResults.classList.add('active');
+        errorMessage.classList.remove('active');
+
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        try {
+            // Filter users based on form data
+            const filteredUsers = mockUsers.filter(user => {
+                if (formData.firstName && !user.firstName.toLowerCase().includes(formData.firstName.toLowerCase())) {
+                    return false;
+                }
+                if (formData.lastName && !user.lastName.toLowerCase().includes(formData.lastName.toLowerCase())) {
+                    return false;
+                }
+                if (formData.dateOfBirth && user.dateOfBirth !== formData.dateOfBirth) {
+                    return false;
+                }
+                if (formData.gender && user.gender !== formData.gender) {
+                    return false;
+                }
+                return true;
+            });
+
+            // Update result count
+            resultCount.textContent = filteredUsers.length;
+
+            // Display results in table
+            if (filteredUsers.length === 0) {
+                userTableBody.innerHTML = '<tr><td colspan="3" class="no-results">No users found</td></tr>';
+            } else {
+                userTableBody.innerHTML = filteredUsers.map(user => `
+                        <tr>
+                            <td>
+                                <span class="user-avatar-small">${user.firstName[0]}${user.lastName[0]}</span>
+                                ${user.firstName} ${user.lastName}
+                            </td>
+                            <td>${new Date(user.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                            <td>
+                                <span class="gender-badge ${getGenderBadgeClass(user.gender)}">
+                                    ${user.gender.charAt(0).toUpperCase() + user.gender.slice(1)}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+            }
+
+            console.log('Searching with data:', formData);
+
+        } catch (error) {
+            errorMessage.textContent = 'Failed to search users. Please try again.';
+            errorMessage.classList.add('active');
+            searchResults.classList.remove('active');
+        }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        // Any initialization code can go here
+    });
+</script>
+</body>
+</html>
